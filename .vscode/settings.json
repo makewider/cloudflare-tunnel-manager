@@ -1,0 +1,17 @@
+{
+  // format
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  // icon
+  "workbench.iconTheme": "vscode-icons",
+  "vsicons.dontShowNewVersionMessage": true,
+  // explorer
+  "explorer.confirmDelete": false,
+  // color
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#560073",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#560073",
+    "titleBar.inactiveForeground": "#ffffff"
+  }
+}
