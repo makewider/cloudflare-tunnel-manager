@@ -1257,53 +1257,17 @@ export async function createTunnel(name: string) {
 /**
  * Tunnel Token を取得する
  *
- * 注意: Cloudflare SDK v5.x には token 取得メソッドが存在しないため、
- * REST API を直接呼び出している。
- *
  * @param tunnelId - Tunnel UUID
  * @returns cloudflared tunnel run --token で使用する JWT トークン
  */
 export async function getTunnelToken(tunnelId: string): Promise<string> {
-  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
-
-  if (!apiToken) {
-    throw new CloudflareServiceError(
-      'CLOUDFLARE_API_TOKEN is not configured',
-      'UNAUTHORIZED'
-    );
-  }
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${accountId}/cfd_tunnel/${tunnelId}/token`,
-    {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
+  // SDK v5.x で token 取得メソッドが追加されている
+  const token = await cloudflare.zeroTrust.tunnels.cloudflared.token.get(
+    tunnelId,
+    { account_id: accountId }
   );
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new CloudflareServiceError(
-      `Failed to get tunnel token: ${response.status}`,
-      response.status === 404 ? 'RESOURCE_NOT_FOUND' : 'UNKNOWN',
-      errorData
-    );
-  }
-
-  const data = await response.json();
-
-  if (!data.success || !data.result) {
-    throw new CloudflareServiceError(
-      'Invalid response from Cloudflare API',
-      'UNKNOWN',
-      data.errors
-    );
-  }
-
-  return data.result;
+  return token;
 }
 
 /**
@@ -1436,9 +1400,9 @@ export class CloudflareServiceError extends Error {
 
 #### 成果物
 
-- [ ] 型定義セクション（8章）の修正
-- [ ] コードサンプルの修正（5.3 Cloudflare SDK使用パターン）
-- [ ] SDKで対応していないAPI（トークン取得等）の特定とREST API直接呼び出し箇所の明確化
+- [x] 型定義セクション（8章）の修正
+- [x] コードサンプルの修正（5.3 Cloudflare SDK使用パターン）
+- [x] SDK APIカバレッジ確認（トークン取得含め全API対応済み）
 
 #### 検証用スクリプト例
 
