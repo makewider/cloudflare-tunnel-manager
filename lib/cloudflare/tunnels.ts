@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { cloudflare, accountId } from './client';
 import { getAllowedZones, getZoneById, parseHostname } from './zones';
+import { listDnsRecords, createDnsRecord, deleteDnsRecord } from './dns';
 import { CloudflareServiceError } from './errors';
 import type {
   Tunnel,
@@ -228,6 +229,7 @@ export function parseIngressRules(
 /**
  * Update tunnel configuration (ingress rules)
  * Converts UI format (zoneId + subdomain) to API format (hostname)
+ * Also synchronizes DNS CNAME records for each hostname
  *
  * @param tunnelId - Tunnel UUID
  * @param rules - Ingress rules in UI format
@@ -236,6 +238,10 @@ export async function updateTunnelConfig(
   tunnelId: string,
   rules: IngressRuleInput[]
 ): Promise<void> {
+  // Build hostname to zone mapping for DNS sync
+  const hostnameToZone: Map<string, { zoneId: string; zoneName: string }> =
+    new Map();
+
   // Convert UI format to Cloudflare API format
   const ingress: IngressRule[] = rules.map((rule) => {
     const zone = getZoneById(rule.zoneId);
@@ -250,6 +256,9 @@ export async function updateTunnelConfig(
     const hostname = rule.subdomain
       ? `${rule.subdomain}.${zone.name}`
       : zone.name;
+
+    // Store mapping for DNS sync
+    hostnameToZone.set(hostname, { zoneId: zone.id, zoneName: zone.name });
 
     return {
       hostname,
@@ -274,6 +283,9 @@ export async function updateTunnelConfig(
         config,
       }
     );
+
+    // Sync DNS CNAME records for each hostname
+    await syncDnsRecordsForTunnel(tunnelId, hostnameToZone);
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
       throw new CloudflareServiceError(
@@ -282,5 +294,88 @@ export async function updateTunnelConfig(
       );
     }
     throw error;
+  }
+}
+
+/**
+ * Synchronize DNS CNAME records for tunnel hostnames
+ * Creates CNAME records pointing to <tunnelId>.cfargotunnel.com
+ * Deletes old tunnel CNAME records that are no longer in the ingress rules
+ *
+ * @param tunnelId - Tunnel UUID
+ * @param hostnameToZone - Map of hostname to zone info (new ingress rules)
+ */
+async function syncDnsRecordsForTunnel(
+  tunnelId: string,
+  hostnameToZone: Map<string, { zoneId: string; zoneName: string }>
+): Promise<void> {
+  const tunnelCname = `${tunnelId}.cfargotunnel.com`;
+
+  // Get all allowed zones - we need to check ALL zones for stale CNAME records
+  const allZones = getAllowedZones();
+
+  // Create set of all hostnames that should have CNAME records
+  const neededHostnames = new Set(hostnameToZone.keys());
+
+  // Process each allowed zone to handle both creation and deletion
+  for (const zone of allZones) {
+    // Get existing DNS records for this zone
+    const existingRecords = await listDnsRecords(zone.id);
+
+    // Find existing tunnel CNAME records (pointing to this tunnel)
+    const existingTunnelCnames = existingRecords.filter(
+      (record) => record.type === 'CNAME' && record.content === tunnelCname
+    );
+
+    // Delete CNAME records that are no longer needed
+    for (const record of existingTunnelCnames) {
+      if (!neededHostnames.has(record.name)) {
+        // This CNAME record points to our tunnel but is no longer in ingress rules
+        await deleteDnsRecord(zone.id, record.id);
+      }
+    }
+
+    // Get hostnames for this zone that need CNAME records
+    const zoneHostnames: string[] = [];
+    for (const [hostname, { zoneId }] of hostnameToZone) {
+      if (zoneId === zone.id) {
+        zoneHostnames.push(hostname);
+      }
+    }
+
+    // Create CNAME records for hostnames in this zone
+    for (const hostname of zoneHostnames) {
+      // Check if this tunnel's CNAME already exists
+      const existingTunnelCname = existingTunnelCnames.find(
+        (record) => record.name === hostname
+      );
+      if (existingTunnelCname) {
+        // Record already exists for this tunnel, skip
+        continue;
+      }
+
+      // Check if a different record already exists for this hostname
+      const existingRecord = existingRecords.find(
+        (record) => record.name === hostname
+      );
+
+      if (existingRecord) {
+        // Skip if a record already exists (could be pointing to different tunnel or different record type)
+        // We don't want to overwrite existing records automatically
+        console.warn(
+          `DNS record already exists for ${hostname}, skipping CNAME creation`
+        );
+        continue;
+      }
+
+      // Create new CNAME record
+      await createDnsRecord(zone.id, {
+        type: 'CNAME',
+        name: hostname,
+        content: tunnelCname,
+        proxied: true,
+        ttl: 1, // Auto TTL
+      });
+    }
   }
 }

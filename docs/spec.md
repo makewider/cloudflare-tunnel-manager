@@ -249,17 +249,24 @@ export function parseHostname(hostname: string): { zoneId: string; subdomain: st
 ```
 
 #### Ingress設定とDNS連携（重要）
-Cloudflare API経由でIngress設定（hostname → service マッピング）を更新すると、指定したhostnameに対応する**CNAMEレコードが自動的に作成**される。
+**注意:** Cloudflare Tunnel Configuration APIはDNSレコードを自動作成しない。本アプリケーションでは、Ingress設定更新後に**明示的にDNS APIを呼び出してCNAMEレコードを同期**している。
 
 | 項目 | 内容 |
 |------|------|
-| 自動作成レコード | `hostname` → `<tunnel_id>.cfargotunnel.com` (CNAME) |
+| 同期レコード | `hostname` → `<tunnel_id>.cfargotunnel.com` (CNAME) |
 | 対象Zone | hostnameのドメインに対応するZone（`CLOUDFLARE_ZONES`に含まれている必要あり） |
-| Proxied | 自動的にプロキシ有効（オレンジ雲）で作成 |
+| Proxied | プロキシ有効（オレンジ雲）で作成 |
+| 削除動作 | Ingress ruleから削除されたhostnameのCNAMEレコードも自動削除 |
+
+**DNS同期ロジック:**
+1. Ingress設定をTunnel Configuration APIで更新
+2. 各hostnameに対応するCNAMEレコードを作成/更新
+3. 削除されたhostnameのCNAMEレコード（同一トンネル向けのみ）を削除
+4. 既存の別レコードが存在する場合は上書きしない（警告ログ出力）
 
 **UI上の考慮事項:**
-- Ingress設定画面で、DNSレコードが自動作成されることをユーザーに通知する
-- DNS一覧画面では、Tunnel経由で自動作成されたレコードも表示される（通常のCNAMEレコードとして）
+- Ingress設定画面で、DNSレコードが同期されることをユーザーに通知する
+- DNS一覧画面では、Tunnel経由で作成されたレコードも表示される（通常のCNAMEレコードとして）
 
 ---
 
