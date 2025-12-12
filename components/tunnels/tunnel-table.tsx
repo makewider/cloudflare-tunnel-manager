@@ -114,39 +114,40 @@ export function TunnelTable() {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Connections</TableHead>
-            <TableHead>Data Centers</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tunnels.map((tunnel) => (
-            <TableRow key={tunnel.id}>
-              <TableCell className="font-medium">
-                <Link
-                  href={`/tunnels/${tunnel.id}`}
-                  className="hover:underline"
-                >
-                  {tunnel.name}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <TunnelStatusBadge status={tunnel.status} />
-              </TableCell>
-              <TableCell>{getConnectionCount(tunnel)}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {getConnectionColos(tunnel)}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDate(tunnel.created_at)}
-              </TableCell>
-              <TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Connections</TableHead>
+              <TableHead className="hidden md:table-cell">Data Centers</TableHead>
+              <TableHead className="hidden lg:table-cell">Created</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tunnels.map((tunnel) => (
+              <TableRow key={tunnel.id}>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/tunnels/${tunnel.id}`}
+                    className="hover:underline"
+                  >
+                    {tunnel.name}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <TunnelStatusBadge status={tunnel.status} />
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">{getConnectionCount(tunnel)}</TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground">
+                  {getConnectionColos(tunnel)}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell text-muted-foreground">
+                  {formatDate(tunnel.created_at)}
+                </TableCell>
+                <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -182,10 +183,11 @@ export function TunnelTable() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <TunnelDeleteDialog
         open={!!deleteTarget}

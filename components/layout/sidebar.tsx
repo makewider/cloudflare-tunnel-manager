@@ -38,7 +38,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r bg-sidebar min-h-screen">
+    <aside className="hidden md:block w-64 border-r bg-sidebar min-h-screen">
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Cloud className="h-6 w-6 text-primary" />

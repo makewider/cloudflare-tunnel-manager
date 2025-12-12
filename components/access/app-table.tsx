@@ -105,38 +105,39 @@ export function AppTable() {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Domain</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Policies</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {apps.map((app) => (
-            <TableRow key={app.id}>
-              <TableCell className="font-medium">
-                <Link href={`/access/${app.id}`} className="hover:underline">
-                  {app.name}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <code className="text-sm">{app.domain}</code>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">{app.type}</Badge>
-              </TableCell>
-              <TableCell>
-                {app.policies?.length || 0} policies
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDate(app.created_at)}
-              </TableCell>
-              <TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden sm:table-cell">Domain</TableHead>
+              <TableHead className="hidden md:table-cell">Type</TableHead>
+              <TableHead className="hidden md:table-cell">Policies</TableHead>
+              <TableHead className="hidden lg:table-cell">Created</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {apps.map((app) => (
+              <TableRow key={app.id}>
+                <TableCell className="font-medium">
+                  <Link href={`/access/${app.id}`} className="hover:underline">
+                    {app.name}
+                  </Link>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <code className="text-sm">{app.domain}</code>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Badge variant="outline">{app.type}</Badge>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {app.policies?.length || 0} policies
+                </TableCell>
+                <TableCell className="hidden lg:table-cell text-muted-foreground">
+                  {formatDate(app.created_at)}
+                </TableCell>
+                <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -168,10 +169,11 @@ export function AppTable() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <AppDeleteDialog
         open={!!deleteTarget}

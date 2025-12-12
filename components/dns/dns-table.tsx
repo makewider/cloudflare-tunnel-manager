@@ -104,38 +104,39 @@ export function DnsTable({ zoneId }: DnsTableProps) {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Content</TableHead>
-            <TableHead>TTL</TableHead>
-            <TableHead>Proxy</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {records.map((record) => (
-            <TableRow key={record.id}>
-              <TableCell>
-                <DnsTypeBadge type={record.type} />
-              </TableCell>
-              <TableCell className="font-mono text-sm max-w-[200px] truncate">
-                {record.name}
-              </TableCell>
-              <TableCell className="font-mono text-sm max-w-[300px] truncate">
-                {record.content}
-              </TableCell>
-              <TableCell>{formatTTL(record.ttl)}</TableCell>
-              <TableCell>
-                {record.proxied ? (
-                  <Cloud className="h-4 w-4 text-orange-500" />
-                ) : (
-                  <CloudOff className="h-4 w-4 text-muted-foreground" />
-                )}
-              </TableCell>
-              <TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Type</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead className="hidden sm:table-cell">Content</TableHead>
+              <TableHead className="hidden md:table-cell">TTL</TableHead>
+              <TableHead className="hidden md:table-cell">Proxy</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {records.map((record) => (
+              <TableRow key={record.id}>
+                <TableCell>
+                  <DnsTypeBadge type={record.type} />
+                </TableCell>
+                <TableCell className="font-mono text-sm max-w-[200px] truncate">
+                  {record.name}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell font-mono text-sm max-w-[300px] truncate">
+                  {record.content}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">{formatTTL(record.ttl)}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {record.proxied ? (
+                    <Cloud className="h-4 w-4 text-orange-500" />
+                  ) : (
+                    <CloudOff className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </TableCell>
+                <TableCell>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -160,10 +161,11 @@ export function DnsTable({ zoneId }: DnsTableProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <DnsDeleteDialog
         open={!!deleteTarget}

@@ -115,63 +115,65 @@ export function PolicyTable() {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Decision</TableHead>
-            <TableHead>Precedence</TableHead>
-            <TableHead>Usage</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {policies.map((policy) => (
-            <TableRow key={policy.id}>
-              <TableCell className="font-medium">{policy.name}</TableCell>
-              <TableCell>
-                <Badge variant={getDecisionBadgeVariant(policy.decision)}>
-                  {policy.decision}
-                </Badge>
-              </TableCell>
-              <TableCell>{policy.precedence}</TableCell>
-              <TableCell>
-                <PolicyUsageBadge count={policy.app_count} />
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDate(policy.created_at)}
-              </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Actions</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/access/policies/${policy.id}/edit`}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={() => setDeleteTarget(policy)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Decision</TableHead>
+              <TableHead className="hidden sm:table-cell">Precedence</TableHead>
+              <TableHead className="hidden md:table-cell">Usage</TableHead>
+              <TableHead className="hidden lg:table-cell">Created</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {policies.map((policy) => (
+              <TableRow key={policy.id}>
+                <TableCell className="font-medium">{policy.name}</TableCell>
+                <TableCell>
+                  <Badge variant={getDecisionBadgeVariant(policy.decision)}>
+                    {policy.decision}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">{policy.precedence}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <PolicyUsageBadge count={policy.app_count} />
+                </TableCell>
+                <TableCell className="hidden lg:table-cell text-muted-foreground">
+                  {formatDate(policy.created_at)}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/access/policies/${policy.id}/edit`}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => setDeleteTarget(policy)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <PolicyDeleteDialog
         open={!!deleteTarget}
